@@ -1,0 +1,953 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>From Scurvy to Statistics — Experiments and Averages</title>
+<style>
+:root{
+  --navy:#06356f;--ink:#17304b;--blue:#1764ac;--teal:#087e8b;--orange:#b45e12;
+  --red:#af3a3a;--muted:#506879;--grid:#d4e0e8;--light:#e8f1f8;--paper:#f7fafc;
+  --white:#fff;--shadow:0 18px 50px #17304b18;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  color:var(--ink);background:var(--paper);scroll-behavior:smooth
+}
+*{box-sizing:border-box}
+body{margin:0;line-height:1.55}
+a{color:var(--blue)}
+button{font:inherit}
+.hero{min-height:72vh;display:grid;place-items:center;padding:70px 24px;color:white;overflow:hidden;position:relative;background:
+  radial-gradient(circle at 18% 22%,#2a75b8 0 2px,transparent 3px),
+  linear-gradient(135deg,#052b5a,#06356f 52%,#087e8b)}
+.hero:before,.hero:after{content:"";position:absolute;border:1px solid #ffffff24;border-radius:50%}
+.hero:before{width:520px;height:520px;right:-180px;top:-250px}
+.hero:after{width:360px;height:360px;left:-190px;bottom:-210px}
+.hero-inner{max-width:1000px;position:relative;z-index:1}
+.eyebrow{font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;font-weight:800;color:#a9e3e7}
+h1{font-size:clamp(2.8rem,7vw,6.4rem);line-height:.98;letter-spacing:-.055em;margin:.24em 0}
+.hero p{font-size:clamp(1.05rem,2vw,1.35rem);max-width:760px;color:#e0edf6}
+.hero-links{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}
+.hero-links a,.replay{display:inline-flex;align-items:center;justify-content:center;border:1px solid #ffffff55;border-radius:999px;padding:10px 17px;color:white;text-decoration:none;background:#ffffff12;font-weight:750;cursor:pointer}
+.hero-links a:hover{background:#ffffff20}
+.page-nav{position:sticky;top:0;z-index:20;display:flex;gap:8px;overflow:auto;padding:10px max(18px,calc((100vw - 1180px)/2));background:#f7fafceF;backdrop-filter:blur(12px);border-bottom:1px solid var(--grid)}
+.page-nav a{white-space:nowrap;text-decoration:none;color:var(--ink);padding:7px 12px;border-radius:999px;font-size:.88rem;font-weight:700}
+.page-nav a:hover{background:var(--light);color:var(--navy)}
+main{max-width:1180px;margin:auto;padding:30px 22px 90px}
+section{scroll-margin-top:72px;padding:70px 0}
+.section-head{display:grid;grid-template-columns:100px 1fr;gap:24px;align-items:start;margin-bottom:34px}
+.chapter{font-size:3.5rem;font-weight:900;line-height:1;color:#bdd0de}
+.section-head h2{font-size:clamp(2rem,4vw,3.5rem);line-height:1.05;letter-spacing:-.035em;margin:0;color:var(--navy)}
+.section-head p{max-width:760px;color:var(--muted);font-size:1.08rem;margin:.8rem 0 0}
+.story-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:24px;align-items:stretch}
+.card{background:white;border:1px solid var(--grid);border-radius:22px;padding:28px;box-shadow:var(--shadow)}
+.story-card{position:relative;overflow:hidden}
+.date{display:inline-block;padding:5px 10px;border-radius:999px;background:var(--light);color:var(--navy);font-size:.78rem;font-weight:850;letter-spacing:.06em}
+.story-card h3{font-size:1.65rem;line-height:1.15;margin:16px 0 10px;color:var(--navy)}
+.story-card p{color:var(--muted)}
+.fact-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:24px}
+.fact{background:var(--paper);border:1px solid var(--grid);border-radius:14px;padding:13px}
+.fact strong{display:block;font-size:1.15rem;color:var(--teal)}
+.fact span{font-size:.78rem;color:var(--muted)}
+.note{border-left:4px solid var(--orange);padding:12px 16px;background:#fff7eb;border-radius:0 12px 12px 0;color:#70400e;font-size:.92rem;margin-top:22px}
+.experiment{display:flex;flex-direction:column}
+.experiment h3{margin:0 0 5px;color:var(--navy)}
+.experiment>p{margin-top:0;color:var(--muted)}
+.treatments{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin:12px 0 20px}
+.treatment{min-height:76px;border:1px solid var(--grid);border-radius:13px;padding:11px;background:var(--paper);transition:.55s transform,.55s background,.55s border-color}
+.treatment b{display:block;color:var(--navy);font-size:.9rem}.treatment span{font-size:.78rem;color:var(--muted)}
+.treatments.revealed .winner{background:#e7f7f3;border-color:#61b8a7;transform:translateY(-5px)}
+.treatments.revealed .winner b{color:#05695f}
+.action{align-self:flex-start;border:0;border-radius:999px;padding:10px 16px;background:var(--blue);color:white;font-weight:800;cursor:pointer}
+.action:hover{filter:brightness(1.08)}
+.result{min-height:48px;margin:14px 0 0;color:var(--teal);font-weight:750}
+.tea-table{position:relative;min-height:390px;background:linear-gradient(145deg,#f4eadb,#e8d6bd);border-radius:22px;overflow:hidden;border:1px solid #d6c1a4}
+.tea-table:before{content:"";position:absolute;inset:32px;border:2px solid #ffffff8a;border-radius:50%}
+.cups{position:absolute;inset:0}
+.cup{position:absolute;width:58px;height:58px;border-radius:50%;background:#fff;border:7px solid #f4f4f2;box-shadow:0 4px 9px #5d381f30;display:grid;place-items:center;color:#6b3e24;font-size:.72rem;font-weight:900;transition:.5s transform,.5s box-shadow}
+.cup:after{content:"";position:absolute;inset:8px;border-radius:50%;background:#9c5c32;z-index:-1}
+.cup:nth-child(1){left:45%;top:8%}.cup:nth-child(2){left:70%;top:19%}.cup:nth-child(3){left:78%;top:47%}.cup:nth-child(4){left:64%;top:72%}
+.cup:nth-child(5){left:34%;top:76%}.cup:nth-child(6){left:11%;top:56%}.cup:nth-child(7){left:13%;top:25%}.cup:nth-child(8){left:31%;top:13%}
+.cup.correct{box-shadow:0 0 0 5px #0b9b8770,0 6px 12px #5d381f30;transform:scale(1.12)}
+.tea-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:180px;text-align:center}
+.tea-center strong{display:block;font-size:2rem;color:var(--navy)}
+.tea-center span{font-size:.82rem;color:var(--muted)}
+.probability{margin-top:16px;text-align:center;padding:14px;background:var(--paper);border-radius:14px;font-weight:800;color:var(--navy)}
+.principles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:24px}
+.principle{padding:16px;border-top:4px solid var(--teal);background:white;border-radius:10px;box-shadow:0 8px 24px #17304b12}
+.principle b{display:block;color:var(--navy);margin-bottom:5px}.principle span{font-size:.84rem;color:var(--muted)}
+.bridge{text-align:center;background:var(--navy);color:white;border-radius:24px;padding:40px 25px;margin:10px 0}
+.bridge h2{margin:0;font-size:clamp(1.8rem,4vw,3.2rem)}.bridge p{color:#d7e6f1;max-width:760px;margin:12px auto 0}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:22px}
+.stat-card{padding:0;overflow:hidden;display:flex;flex-direction:column}
+.stat-copy{padding:25px 25px 18px}
+.stat-copy h3{font-size:1.55rem;margin:0;color:var(--navy)}
+.stat-copy p{color:var(--muted);margin:.45rem 0}
+.formula{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--blue);font-weight:800}
+.demo{min-height:310px;padding:22px;background:var(--paper);border-top:1px solid var(--grid);position:relative}
+.mean-gif,.stat-gif,.concept-gif{width:100%;height:100%;min-height:280px;object-fit:contain;display:block}
+.number-row{display:flex;gap:10px;justify-content:center;align-items:flex-end;min-height:120px;margin-top:16px}
+.number{width:58px;height:58px;border-radius:14px;background:var(--light);border:1px solid var(--grid);display:grid;place-items:center;font-size:1.25rem;font-weight:900;color:var(--navy);transition:transform .7s,background .7s,color .7s,order .7s}
+.demo.running .number{animation:float-in .7s both}.demo.running .number:nth-child(2){animation-delay:.12s}.demo.running .number:nth-child(3){animation-delay:.24s}.demo.running .number:nth-child(4){animation-delay:.36s}
+@keyframes float-in{from{opacity:.2;transform:translateY(45px) scale(.8)}to{opacity:1;transform:none}}
+.equation{text-align:center;min-height:70px;margin-top:16px;color:var(--teal);font-size:1.15rem;font-weight:850}
+.geo-track{height:10px;background:linear-gradient(90deg,var(--blue),var(--teal));border-radius:999px;margin:18px 25px;position:relative}
+.geo-track:after{content:"4";position:absolute;left:40%;top:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--orange);color:white;font-weight:900;box-shadow:0 0 0 7px #b45e1220}
+.frequency{display:flex;justify-content:center;align-items:flex-end;gap:18px;height:180px;padding-top:20px}
+.bar-group{text-align:center;color:var(--muted);font-size:.82rem}
+.bar{width:50px;height:0;border-radius:9px 9px 3px 3px;background:var(--blue);transition:height 1s cubic-bezier(.2,.8,.2,1)}
+.demo.running .bar[data-count="1"]{height:44px}.demo.running .bar[data-count="3"]{height:132px}.demo.running .bar[data-count="2"]{height:88px}
+.bar.mode{background:var(--orange)}
+.median-row .number{position:relative}
+.demo.running .median-row .number:nth-child(1){order:4}.demo.running .median-row .number:nth-child(2){order:1}
+.demo.running .median-row .number:nth-child(3){order:3}.demo.running .median-row .number:nth-child(4){order:5}
+.demo.running .median-row .number:nth-child(5){order:2}
+.median-row .middle{background:var(--orange);color:white;transform:translateY(-12px);box-shadow:0 8px 18px #b45e1238}
+.median-arrow{text-align:center;color:var(--orange);font-weight:900;opacity:0;transform:translateY(12px);transition:.8s .75s}
+.demo.running .median-arrow{opacity:1;transform:none}
+.demo-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px;color:var(--muted);font-size:.8rem}
+.demo-footer .action{font-size:.78rem;padding:7px 12px}
+.takeaway{margin-top:25px;background:#e7f7f3;border:1px solid #a5d9d0;border-radius:18px;padding:22px}
+.takeaway strong{color:#05695f}
+.takeaway h3{margin:0 0 15px;color:#05695f}.example-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.example{background:#ffffffb8;border:1px solid #a5d9d0;border-radius:12px;padding:14px}.example b{display:block;color:var(--navy);margin-bottom:4px}.example span{font-size:.9rem;color:var(--muted)}
+.concept-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px}.concept-card{padding:0;overflow:hidden}.concept-copy{padding:25px}.concept-copy h3{font-size:1.55rem;margin:0;color:var(--navy)}.concept-copy p{color:var(--muted);margin:.45rem 0}.concept-demo{min-height:285px;padding:24px;background:var(--paper);border-top:1px solid var(--grid)}
+.histogram{height:170px;display:flex;align-items:flex-end;justify-content:center;gap:7px;border-bottom:2px solid var(--grid);padding:0 12px}.hist-bar{width:26px;height:0;background:linear-gradient(var(--teal),var(--blue));border-radius:7px 7px 0 0;transition:height .7s cubic-bezier(.2,.8,.2,1);transition-delay:calc(var(--i)*55ms)}.running .hist-bar{height:var(--h)}.axis-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:.76rem;padding:7px 10px}.visual-caption{text-align:center;color:var(--teal);font-weight:800;margin:13px 0 5px}
+.number-line{position:relative;height:140px;margin:8px 12px;border-bottom:3px solid var(--navy)}.mean-pin{position:absolute;left:50%;top:15px;bottom:-4px;border-left:3px dashed var(--orange);opacity:0;transition:opacity .5s}.running .mean-pin{opacity:1}.mean-pin span{position:absolute;top:-8px;transform:translateX(-50%);color:var(--orange);font-size:.8rem;font-weight:900;white-space:nowrap}.plot-point{position:absolute;left:var(--x);bottom:-10px;width:20px;height:20px;border-radius:50%;background:var(--blue);transform:translate(-50%,40px) scale(.3);opacity:0;transition:.65s transform,.65s opacity}.running .plot-point{transform:translate(-50%,0) scale(1);opacity:1}.plot-point span{position:absolute;top:24px;left:50%;transform:translateX(-50%);font-weight:900;color:var(--navy)}.deviation{position:absolute;left:var(--left);width:var(--width);bottom:28px;border-top:4px solid var(--teal);transform:scaleX(0);transition:transform .8s .6s;transform-origin:var(--origin)}.running .deviation{transform:scaleX(1)}.deviation:after{content:"";position:absolute;right:0;top:-6px;border:4px solid var(--teal);border-radius:50%}
+.sd-scale{position:relative;height:110px;margin:25px 16px 0;border-bottom:4px solid var(--navy)}.sd-band{position:absolute;left:50%;bottom:0;width:0;height:62px;background:#087e8b2c;border:2px solid var(--teal);border-radius:10px 10px 0 0;transform:translateX(-50%);transition:width 1.15s cubic-bezier(.2,.8,.2,1)}.running .sd-band{width:52%}.sd-center{position:absolute;left:50%;bottom:-11px;width:18px;height:18px;border-radius:50%;background:var(--orange);transform:translateX(-50%)}.sd-scale label{position:absolute;bottom:-34px;font-size:.78rem;color:var(--muted);transform:translateX(-50%)}.sd-scale .l0{left:0}.sd-scale .l5{left:50%}.sd-scale .l10{left:100%}.sd-formula{text-align:center;margin-top:50px;color:var(--teal);font-weight:850}
+.se-bars{height:175px;display:flex;justify-content:center;align-items:flex-end;gap:36px;border-bottom:2px solid var(--grid)}.se-group{text-align:center;color:var(--muted);font-size:.78rem}.se-bar{width:65px;height:0;border-radius:10px 10px 0 0;background:var(--blue);transition:height 1s cubic-bezier(.2,.8,.2,1)}.running .se-bar.s4{height:140px}.running .se-bar.s16{height:70px}.running .se-bar.s64{height:35px}.se-group b{display:block;color:var(--navy);margin-top:7px}.warning{margin-top:18px;padding:13px;border-radius:12px;background:#fff7eb;color:#70400e;font-size:.86rem;border-left:4px solid var(--orange)}
+.mc-overview{border-top:5px solid #16a7b7;background:#eaf2f8}.mc-overview-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:25px;align-items:center}.mc-question{font-size:1.45rem;font-style:italic;font-weight:900;color:var(--navy);margin:.3rem 0 1rem}.mc-overview ul{color:var(--muted);padding-left:1.25rem}.mc-gif{width:100%;display:block;border-radius:14px;background:var(--paper)}.mc-steps{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:18px}.mc-step{background:white;border:1px solid var(--grid);border-top:5px solid var(--teal);border-radius:0 0 15px 15px;padding:16px;min-height:150px}.mc-step:nth-child(5){border-top-color:var(--navy)}.mc-number{color:#0c9bad;font-size:1.1rem;font-weight:900}.mc-step b{display:block;color:var(--navy);margin:8px 0 6px}.mc-step span{font-size:.82rem;color:var(--muted)}.mc-example{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px}.mc-example>div{background:white;border:1px solid var(--grid);border-radius:14px;padding:17px}.mc-example b{display:block;color:var(--navy);margin-bottom:5px}.mc-example span{font-size:.9rem;color:var(--muted)}
+.ofat-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}.ofat-gif{width:100%;display:block;border-radius:14px}.ofat-procedure{counter-reset:ofat}.ofat-procedure div{position:relative;padding:13px 14px 13px 54px;margin:9px 0;background:var(--paper);border:1px solid var(--grid);border-radius:12px;color:var(--muted)}.ofat-procedure div:before{counter-increment:ofat;content:counter(ofat);position:absolute;left:13px;top:11px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--teal);color:white;font-weight:900}.ofat-procedure b{color:var(--navy)}.ofat-lessons{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}.ofat-lesson{padding:19px;border-radius:15px;background:white;border:1px solid var(--grid)}.ofat-lesson.good{border-top:5px solid var(--teal)}.ofat-lesson.caution{border-top:5px solid var(--orange)}.ofat-lesson h3{margin:0 0 8px;color:var(--navy);font-size:1.1rem}.ofat-lesson p{margin:0;color:var(--muted);font-size:.9rem}
+.doe-overview{border-top:5px solid var(--navy);background:#eaf2f8}.doe-overview-grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:24px;align-items:center}.doe-question{font-size:1.4rem;font-style:italic;font-weight:900;color:var(--navy);margin:.4rem 0 1rem}.doe-gif{width:100%;display:block;border-radius:14px;background:var(--paper)}.doe-terms{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}.doe-term{background:white;border:1px solid var(--grid);border-radius:14px;padding:18px}.doe-term b{display:block;color:var(--navy);margin-bottom:6px}.doe-term span{font-size:.86rem;color:var(--muted)}.doe-flow{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:18px}.doe-flow div{position:relative;padding:15px;background:var(--paper);border:1px solid var(--grid);border-radius:12px;font-size:.82rem;color:var(--muted)}.doe-flow b{display:block;color:var(--teal);margin-bottom:4px}.doe-principles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}.doe-principle{padding:18px;border-radius:14px;background:white;border:1px solid var(--grid);border-left:5px solid var(--teal)}.doe-principle b{display:block;color:var(--navy)}.doe-principle span{font-size:.85rem;color:var(--muted)}
+.doe-advanced{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}.doe-advanced-card{background:white;border:1px solid var(--grid);border-radius:16px;overflow:hidden}.doe-advanced-copy{padding:18px}.doe-advanced-copy h3{margin:0 0 7px;color:var(--navy);font-size:1.12rem}.doe-advanced-copy p{margin:0;color:var(--muted);font-size:.86rem}.doe-advanced-card img{width:100%;display:block;background:var(--paper);border-top:1px solid var(--grid)}
+.coding-overview{border-top:5px solid var(--teal);background:#eaf2f8}.coding-overview-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:24px;align-items:center}.coding-gif{width:100%;display:block;border-radius:14px;background:var(--paper)}.model-box{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:white;border:1px solid var(--grid);border-radius:12px;padding:14px;color:var(--blue);font-weight:800;margin-top:14px}.coding-types{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:18px}.coding-type{padding:16px;background:white;border:1px solid var(--grid);border-radius:14px}.coding-type b{display:block;color:var(--navy);margin-bottom:6px}.coding-type code{display:block;color:var(--teal);font-weight:900;margin-bottom:7px}.coding-type span{font-size:.8rem;color:var(--muted)}.matrix-links{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}.matrix-link{padding:17px;border-radius:14px;background:var(--paper);border:1px solid var(--grid)}.matrix-link b{display:block;color:var(--navy);margin-bottom:5px}.matrix-link span{font-size:.84rem;color:var(--muted)}
+.fraction-overview{border-top:5px solid var(--orange);background:#eaf2f8}.fraction-overview-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:24px;align-items:center}.fraction-gif{width:100%;display:block;border-radius:14px;background:var(--paper)}.design-compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}.design-option{background:white;border:1px solid var(--grid);border-radius:16px;padding:21px}.design-option.full{border-top:5px solid var(--teal)}.design-option.fraction{border-top:5px solid var(--orange)}.design-option h3{color:var(--navy);margin:0 0 10px}.design-option ul{color:var(--muted);padding-left:1.2rem;margin-bottom:0}.resolution-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}.resolution{padding:17px;border-radius:14px;background:var(--paper);border:1px solid var(--grid)}.resolution b{display:block;color:var(--navy);margin-bottom:5px}.resolution span{font-size:.84rem;color:var(--muted)}.alias-box{margin-top:18px;padding:20px;border-radius:16px;background:#fff7eb;border:1px solid #e2b578}.alias-box h3{margin:0 0 8px;color:var(--orange)}.alias-box p{margin:.4rem 0;color:#70400e}
+.sfd-overview{border-top:5px solid #16a7b7;background:#eaf2f8}.sfd-overview-grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:24px;align-items:center}.sfd-gif{width:100%;display:block;border-radius:14px;background:var(--paper)}.sfd-methods{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:18px}.sfd-method{padding:17px;background:white;border:1px solid var(--grid);border-top:5px solid var(--teal);border-radius:0 0 14px 14px}.sfd-method b{display:block;color:var(--navy);margin-bottom:6px}.sfd-method span{font-size:.8rem;color:var(--muted)}.sfd-flow{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin-top:16px}.sfd-flow div{padding:14px;background:var(--paper);border:1px solid var(--grid);border-radius:12px;font-size:.8rem;color:var(--muted)}.sfd-flow b{display:block;color:var(--teal);margin-bottom:4px}.method-compare{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:18px}.method-compare>div{padding:18px;border-radius:15px;background:white;border:1px solid var(--grid)}.method-compare b{display:block;color:var(--navy);margin-bottom:6px}.method-compare span{font-size:.86rem;color:var(--muted)}
+.rsm-overview{border-top:5px solid var(--teal);background:#eaf2f8}.rsm-overview-grid{display:grid;grid-template-columns:.82fr 1.18fr;gap:24px;align-items:center}.rsm-gif{width:100%;display:block;border-radius:14px;background:var(--paper)}.rsm-designs{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}.rsm-design{padding:20px;background:white;border:1px solid var(--grid);border-top:5px solid var(--teal);border-radius:0 0 15px 15px}.rsm-design:nth-child(2){border-top-color:var(--blue)}.rsm-design:nth-child(3){border-top-color:var(--orange)}.rsm-design h3{margin:0 0 8px;color:var(--navy);font-size:1.08rem}.rsm-design p{margin:0;color:var(--muted);font-size:.86rem}.rsm-flow{display:grid;grid-template-columns:repeat(6,1fr);gap:9px;margin-top:16px}.rsm-flow div{padding:14px;background:var(--paper);border:1px solid var(--grid);border-radius:12px;font-size:.79rem;color:var(--muted)}.rsm-flow b{display:block;color:var(--teal);margin-bottom:4px}.rsm-uses{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}.rsm-use{padding:18px;background:white;border:1px solid var(--grid);border-radius:14px}.rsm-use b{display:block;color:var(--navy);margin-bottom:5px}.rsm-use span{font-size:.84rem;color:var(--muted)}
+.anova-overview{border-top:5px solid var(--blue);background:#eaf2f8}.anova-overview-grid{display:grid;grid-template-columns:.8fr 1.2fr;gap:24px;align-items:center}.anova-gif{width:100%;display:block;border-radius:14px;background:var(--paper)}.anova-data{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px}.anova-group{padding:16px;background:white;border:1px solid var(--grid);border-top:5px solid var(--teal);border-radius:0 0 14px 14px}.anova-group b{display:block;color:var(--navy)}.anova-group code{display:block;color:var(--muted);font-size:.82rem;margin:7px 0}.anova-group span{color:var(--teal);font-weight:850}.anova-table-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:20px;align-items:center}.anova-table{width:100%;border-collapse:collapse;font-size:.88rem}.anova-table th{background:var(--navy);color:white;padding:10px;text-align:left}.anova-table td{padding:10px;border-bottom:1px solid var(--grid)}.anova-table tr:nth-child(even) td{background:var(--paper)}.anova-table td:first-child{font-weight:800;color:var(--navy)}.anova-rules{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}.anova-rule{padding:17px;background:white;border:1px solid var(--grid);border-radius:14px}.anova-rule b{display:block;color:var(--navy);margin-bottom:5px}.anova-rule span{font-size:.83rem;color:var(--muted)}
+.worked-overview{border-top:5px solid var(--teal);background:#eaf2f8}.worked-overview-grid{display:grid;grid-template-columns:.72fr 1.28fr;gap:24px;align-items:center}.worked-gif{width:100%;display:block;border-radius:14px;background:var(--paper)}.notation-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}.notation{padding:18px;background:white;border:1px solid var(--grid);border-radius:14px}.notation b{display:block;color:var(--navy);margin-bottom:5px}.notation code{display:block;color:var(--teal);font-weight:900;margin-bottom:6px}.notation span{font-size:.84rem;color:var(--muted)}.effect-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}.effect-card{padding:17px;background:var(--paper);border:1px solid var(--grid);border-radius:13px}.effect-card b{display:block;color:var(--navy)}.effect-card strong{display:block;color:var(--teal);font-size:1.35rem;margin:4px 0}.effect-card code{display:block;margin:8px 0;color:var(--blue);font-size:.82rem;font-weight:800}.effect-card span{display:block;font-size:.81rem;color:var(--muted)}.effect-rank{color:var(--orange)!important;font-weight:900;margin-bottom:5px}.replication-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:22px;align-items:center}.replication-steps{counter-reset:rep}.replication-steps div{position:relative;padding:13px 13px 13px 50px;margin:8px 0;background:var(--paper);border:1px solid var(--grid);border-radius:11px;color:var(--muted);font-size:.88rem}.replication-steps div:before{counter-increment:rep;content:counter(rep);position:absolute;left:12px;top:11px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--teal);color:white;font-weight:900}.replication-steps b{color:var(--navy)}
+.exercise-intro{border-top:5px solid var(--orange);background:#eaf2f8}.exercise-video{display:block;width:100%;margin-top:18px;border-radius:16px;background:#07192b;box-shadow:0 12px 30px #102a4426}.exercise-note{margin-top:14px;color:var(--muted);font-size:.9rem}.exercise-note a{color:var(--teal);font-weight:850}
+.result-facts{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}.result-fact{padding:16px;background:white;border:1px solid var(--grid);border-radius:14px}.result-fact strong{display:block;color:var(--navy);font-size:1.35rem}.result-fact span{color:var(--muted);font-size:.82rem}.factor-key{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:16px}.factor-key div{padding:14px;background:white;border:1px solid var(--grid);border-radius:12px}.factor-key b{display:block;color:var(--teal);margin-bottom:4px}.factor-key span{color:var(--muted);font-size:.82rem}.mean-bars{display:grid;gap:9px;margin-top:16px}.mean-bar{display:grid;grid-template-columns:190px 1fr 86px;gap:10px;align-items:center;color:var(--navy);font-weight:800;font-size:.88rem}.mean-bar i{display:block;height:16px;border-radius:8px;background:linear-gradient(90deg,var(--teal),var(--blue));width:var(--w)}.mean-bar.quiet i{background:#b7c6d4}.mean-bar em{font-style:normal;color:var(--teal);font-weight:900;text-align:right}.result-split{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:center}.ab-matrix{display:grid;grid-template-columns:110px 1fr 1fr;gap:8px}.ab-matrix div{padding:13px;background:var(--paper);border:1px solid var(--grid);border-radius:11px;text-align:center}.ab-matrix b{display:block;color:var(--navy)}.ab-matrix span{color:var(--muted);font-size:.8rem}.table-scroll{overflow-x:auto;margin-top:14px}.pareto-chart{width:100%;height:auto;display:block;background:white;border:1px solid var(--grid);border-radius:14px}.pareto-key{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;color:var(--muted);font-size:.84rem}.pareto-key b{color:var(--navy)}
+.f-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}.f-step{background:white;border:1px solid var(--grid);border-top:5px solid var(--teal);border-radius:0 0 14px 14px;padding:15px;min-height:190px}.f-step.ratio{border-top-color:var(--navy)}.f-step b{display:block;color:var(--navy);margin:6px 0}.f-step span{display:block;color:var(--muted);font-size:.82rem}.f-step code{display:block;color:var(--teal);font-weight:850;margin-bottom:8px}
+footer{background:#102a44;color:#c7d7e4;padding:34px 22px}
+.footer-inner{max-width:1180px;margin:auto;display:flex;justify-content:space-between;gap:25px;flex-wrap:wrap}
+footer a{color:#9fd8e0}
+.sources{font-size:.8rem;max-width:780px}
+@media(max-width:800px){
+  .story-grid,.stats,.concept-grid,.mc-overview-grid,.ofat-grid,.doe-overview-grid,.doe-advanced,.coding-overview-grid,.fraction-overview-grid,.sfd-overview-grid,.rsm-overview-grid,.anova-overview-grid,.anova-table-grid,.worked-overview-grid,.replication-grid,.result-split{grid-template-columns:1fr}.principles{grid-template-columns:repeat(2,1fr)}.mc-steps,.doe-terms,.doe-flow,.coding-types,.matrix-links,.sfd-methods,.sfd-flow,.rsm-flow,.anova-data,.anova-rules,.result-facts,.factor-key,.f-steps{grid-template-columns:repeat(2,1fr)}
+  .section-head{grid-template-columns:1fr;gap:6px}.chapter{font-size:2rem}.fact-strip{grid-template-columns:1fr}
+}
+@media(max-width:480px){.treatments,.principles,.example-grid,.mc-steps,.mc-example,.ofat-lessons,.doe-terms,.doe-flow,.doe-principles,.coding-types,.matrix-links,.design-compare,.resolution-grid,.sfd-methods,.sfd-flow,.method-compare,.rsm-designs,.rsm-flow,.rsm-uses,.anova-data,.anova-rules,.notation-grid,.effect-grid,.result-facts,.factor-key,.f-steps{grid-template-columns:1fr}.mean-bar{grid-template-columns:1fr}.mean-bar em{text-align:left}.card{padding:20px}.cup{width:49px;height:49px}.demo{padding:14px}.number{width:48px;height:48px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">A visual story of evidence</div>
+    <h1>From scurvy<br>to statistics.</h1>
+    <p>Two experiments changed how we ask questions. Then four simple summaries help us understand the answers.</p>
+    <div class="hero-links">
+      <a href="#factorial-setup">Begin with the factorial setup ↓</a>
+      <a href="#averages">Jump to the animations</a>
+    </div>
+  </div>
+</header>
+
+<nav class="page-nav" aria-label="Page sections">
+  <a href="index.html">← Course</a>
+  <a href="#factorial-setup">Factorial Setup</a>
+  <a href="#lind">Scurvy trial</a>
+  <a href="#tea">Lady tasting tea</a>
+  <a href="#averages">Mean</a>
+  <a href="#geometric">Geometric mean</a>
+  <a href="#mode">Mode</a>
+  <a href="#median">Median</a>
+  <a href="#spread">Distribution &amp; uncertainty</a>
+  <a href="#monte-carlo">Monte Carlo</a>
+  <a href="#ofat">One factor at a time</a>
+  <a href="#factorial-doe">Factorial Design &amp; DoE</a>
+  <a href="#coding-matrix">Coding &amp; Design Matrix</a>
+  <a href="#full-fractional">Full vs Fractional</a>
+  <a href="#space-filling">Space-Filling Designs</a>
+  <a href="#rsm">Response Surface Methodology</a>
+  <a href="#anova">One-Way ANOVA</a>
+  <a href="#factorial-example">2³ Example &amp; Replication</a>
+  <a href="#hands-on-exercise">Hands-on Exercise</a>
+  <a href="#exercise-results">Exercise Results</a>
+  <a href="#why-f">Why F</a>
+</nav>
+
+<main>
+<section id="factorial-setup">
+  <div class="section-head">
+    <div class="chapter">00</div>
+    <div><h2>Setting up a Factorial Design</h2></div>
+  </div>
+  <div class="card exercise-intro">
+    <span class="date">INTRODUCTION · FACTORIAL DESIGN</span>
+    <h3>How the experiment is organized</h3>
+    <p>Watch the setup first, then continue with the scurvy trial, Fisher’s tea experiment, and the statistical concepts used to analyze a designed experiment.</p>
+    <video class="exercise-video" controls playsinline preload="metadata" aria-label="Introduction to the full factorial exercise">
+      <source src="assets/videos/full-factorial-exercise-introduction-1.mp4" type="video/mp4">
+      Your browser does not support embedded MP4 video.
+    </video>
+    <p class="exercise-note">If the player does not open, <a href="assets/videos/full-factorial-exercise-introduction-1.mp4">download the introduction video</a>.</p>
+  </div>
+</section>
+
+<section id="lind">
+  <div class="section-head">
+    <div class="chapter">01</div>
+    <div><h2>Scurvy and an early controlled trial</h2><p>At sea, a comparison of treatments replaced competing stories with directly observed evidence.</p></div>
+  </div>
+  <div class="story-grid">
+    <article class="card story-card">
+      <span class="date">HMS SALISBURY · 1747</span>
+      <h3>James Lind compares six remedies</h3>
+      <p>Scurvy weakened sailors on long voyages. Lind selected 12 sailors with similar symptoms, kept their basic conditions alike, and divided them into six pairs. Each pair received a different supplement.</p>
+      <p>The two sailors given oranges and lemons improved most quickly. Lind published the account in <em>A Treatise of the Scurvy</em> in 1753.</p>
+      <div class="fact-strip">
+        <div class="fact"><strong>12</strong><span>sailors observed</span></div>
+        <div class="fact"><strong>6</strong><span>treatment pairs</span></div>
+        <div class="fact"><strong>2</strong><span>sailors per remedy</span></div>
+      </div>
+      <div class="note"><strong>Historical precision:</strong> this is commonly described as an early controlled clinical trial—not a registered trial.</div>
+    </article>
+    <div class="card experiment">
+      <h3>Which treatment stood out?</h3>
+      <p>Reveal the outcome of Lind’s six-way comparison.</p>
+      <div class="treatments" id="treatments">
+        <div class="treatment"><b>Cider</b><span>one pair</span></div>
+        <div class="treatment"><b>Elixir of vitriol</b><span>one pair</span></div>
+        <div class="treatment"><b>Vinegar</b><span>one pair</span></div>
+        <div class="treatment"><b>Seawater</b><span>one pair</span></div>
+        <div class="treatment winner"><b>Citrus</b><span>oranges + lemons · one pair</span></div>
+        <div class="treatment"><b>Spiced paste + barley water</b><span>one pair</span></div>
+      </div>
+      <button class="action" id="revealLind">Reveal the result</button>
+      <p class="result" id="lindResult" aria-live="polite"></p>
+    </div>
+  </div>
+</section>
+
+<section id="tea">
+  <div class="section-head">
+    <div class="chapter">02</div>
+    <div><h2>Fisher and the lady tasting tea</h2><p>A claim at a tea party became a compact lesson in randomization, exact probability, and fair testing.</p></div>
+  </div>
+  <div class="story-grid">
+    <div class="card">
+      <div class="tea-table">
+        <div class="cups" id="cups">
+          <div class="cup">M</div><div class="cup">T</div><div class="cup">T</div><div class="cup">M</div>
+          <div class="cup">M</div><div class="cup">T</div><div class="cup">M</div><div class="cup">T</div>
+        </div>
+        <div class="tea-center"><strong>8 cups</strong><span>4 milk-first<br>4 tea-first</span></div>
+      </div>
+      <div class="probability">Chance of all 8 correct by guessing: 1 ÷ C(8,4) = 1/70 ≈ 1.43%</div>
+    </div>
+    <article class="card story-card">
+      <span class="date">ROTHAMSTED · 1920s</span>
+      <h3>Could Muriel Bristol really tell?</h3>
+      <p>At Rothamsted Experimental Station, phycologist Muriel Bristol said she could distinguish tea according to whether milk or tea entered the cup first.</p>
+      <p>Ronald A. Fisher framed a fair test: eight cups, four prepared each way, presented in randomized order. Bristol classified all eight correctly. Fisher later used the experiment in his 1935 book <em>The Design of Experiments</em>.</p>
+      <button class="action" id="runTea">Run the tasting</button>
+      <p class="result" id="teaResult" aria-live="polite"></p>
+    </article>
+  </div>
+  <div class="principles">
+    <div class="principle"><b>Clear claim</b><span>Tell milk-first from tea-first.</span></div>
+    <div class="principle"><b>Fixed design</b><span>Four cups of each type.</span></div>
+    <div class="principle"><b>Random order</b><span>Prevent ordering clues.</span></div>
+    <div class="principle"><b>Exact test</b><span>Compare the result with chance.</span></div>
+  </div>
+</section>
+
+<div class="bridge">
+  <h2>Experiments create data. Statistics give the data shape.</h2>
+  <p>No single summary is always best. The arithmetic mean, geometric mean, mode, and median answer different questions.</p>
+</div>
+
+<section id="averages">
+  <div class="section-head">
+    <div class="chapter">03</div>
+    <div><h2>Four ways to describe a “typical” value</h2><p>Watch each measure work, then choose the one that matches the structure of your data.</p></div>
+  </div>
+  <div class="stats">
+    <article class="card stat-card">
+      <div class="stat-copy"><h3>Arithmetic mean</h3><p>Pool the total, then share it equally.</p><div class="formula">(2 + 4 + 6 + 8) ÷ 4 = 5</div></div>
+      <div class="demo"><img class="mean-gif" src="assets/what_does_the_mean_mean.gif" alt="Animated values 2, 4, 6 and 8 equalizing at their arithmetic mean, 5"></div>
+    </article>
+
+    <article class="card stat-card" id="geometric">
+      <div class="stat-copy"><h3>Geometric mean</h3><p>The equal multiplicative factor. Useful for ratios, growth rates, and proportional change.</p><div class="formula">⁴√(1 × 2 × 8 × 16) = 4</div></div>
+      <div class="demo"><img class="stat-gif" src="assets/statistics/geometric_mean.gif" alt="Looping animation showing 1, 2, 8 and 16 becoming equal factors of 4 while keeping their product unchanged"></div>
+    </article>
+
+    <article class="card stat-card" id="mode">
+      <div class="stat-copy"><h3>Mode</h3><p>The value that appears most often. It also works for categories.</p><div class="formula">2, 3, 3, 3, 5, 5 → mode = 3</div></div>
+      <div class="demo"><img class="stat-gif" src="assets/statistics/mode.gif" alt="Looping animation counting repeated values and identifying 3 as the mode"></div>
+    </article>
+
+    <article class="card stat-card" id="median">
+      <div class="stat-copy"><h3>Median</h3><p>Sort the values and select the middle. Resistant to extreme values.</p><div class="formula">2, 3, 7, 12, 50 → median = 7</div></div>
+      <div class="demo"><img class="stat-gif" src="assets/statistics/median.gif" alt="Looping animation sorting values and highlighting 7 as the median"></div>
+    </article>
+  </div>
+  <div class="takeaway">
+    <h3>Choose by meaning—four practical examples</h3>
+    <div class="example-grid">
+      <div class="example"><b>Arithmetic mean · Exam scores</b><span>Scores of 60, 70, and 80 have a mean of 70. Use it when values combine additively and every value should influence the result.</span></div>
+      <div class="example"><b>Geometric mean · Investment growth</b><span>An investment grows by 10% one year and 20% the next. Use the geometric mean for the typical compounded growth rate.</span></div>
+      <div class="example"><b>Mode · Shoe inventory</b><span>If size 42 is sold more often than any other size, 42 is the mode. It tells a shop which single size is most common.</span></div>
+      <div class="example"><b>Median · House prices</b><span>One mansion can pull the arithmetic mean upward. The median gives the middle sale price and better represents a typical home.</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="spread">
+  <div class="section-head">
+    <div class="chapter">04</div>
+    <div><h2>Distribution, spread, and uncertainty</h2><p>A center is only part of the story. These concepts show the shape of the data, how observations vary, and how precisely a sample estimates a mean.</p></div>
+  </div>
+  <div class="concept-grid">
+    <article class="card concept-card">
+      <div class="concept-copy"><h3>Statistical distribution</h3><p>A distribution shows which values occur and how often. Look for its center, spread, shape, gaps, and unusual observations.</p></div>
+      <div class="concept-demo"><img class="concept-gif" src="assets/statistics/distribution.gif" alt="Looping animation building a statistical distribution from frequencies"></div>
+    </article>
+
+    <article class="card concept-card">
+      <div class="concept-copy"><h3>Sample variance</h3><p>Variance averages the <em>squared</em> distances from the sample mean. Squaring prevents positive and negative deviations from cancelling.</p><div class="formula">s² = Σ(x − x̄)² ÷ (n − 1)</div></div>
+      <div class="concept-demo"><img class="concept-gif" src="assets/statistics/variance.gif" alt="Looping animation squaring distances from the mean to calculate sample variance"></div>
+    </article>
+
+    <article class="card concept-card">
+      <div class="concept-copy"><h3>Standard deviation</h3><p>Standard deviation is the square root of variance, returning spread to the original measurement units.</p><div class="formula">s = √6.67 ≈ 2.58</div></div>
+      <div class="concept-demo"><img class="concept-gif" src="assets/statistics/standard_deviation.gif" alt="Looping animation expanding one standard deviation around the mean"></div>
+    </article>
+
+    <article class="card concept-card">
+      <div class="concept-copy"><h3>Standard error of the mean</h3><p>The standard error estimates how much a sample mean would vary across repeated samples. Larger samples give more precise means.</p><div class="formula">SE = s ÷ √n</div></div>
+      <div class="concept-demo"><img class="concept-gif" src="assets/statistics/standard_error.gif" alt="Looping animation showing standard error shrinking as sample size increases"><div class="warning"><strong>Do not confuse them:</strong> SD describes variation among individual observations; SE describes uncertainty in the estimated mean.</div></div>
+    </article>
+  </div>
+</section>
+
+<section id="monte-carlo">
+  <div class="section-head">
+    <div class="chapter">05</div>
+    <div><h2>Monte Carlo methods for uncertainty</h2><p>When uncertain inputs affect a model, simulation shows the range and probability of possible outcomes—not just one best guess.</p></div>
+  </div>
+  <div class="card mc-overview">
+    <div class="mc-overview-grid">
+      <div>
+        <span class="date">MONTE CARLO SIMULATION</span>
+        <div class="mc-question">“What could happen under uncertainty?”</div>
+        <p><strong>The model and decision rules stay fixed;</strong> uncertain inputs change from run to run according to chosen probability distributions.</p>
+        <ul>
+          <li>Estimate the full distribution of an output.</li>
+          <li>Measure percentiles, ranges, and expected values.</li>
+          <li>Estimate the probability of crossing a risk threshold.</li>
+        </ul>
+      </div>
+      <img class="mc-gif" src="assets/statistics/monte_carlo.gif" alt="Looping Monte Carlo animation accumulating simulation runs into an output distribution and estimating threshold risk">
+    </div>
+  </div>
+
+  <div class="mc-steps" aria-label="Five Monte Carlo steps">
+    <div class="mc-step"><div class="mc-number">01</div><b>Define variables</b><span>Identify uncertain inputs, outputs, constraints, and plausible ranges.</span></div>
+    <div class="mc-step"><div class="mc-number">02</div><b>Assign distributions</b><span>Choose defensible probability models and account for correlations.</span></div>
+    <div class="mc-step"><div class="mc-number">03</div><b>Set parameters</b><span>Calibrate distributions, fix assumptions, and define risk thresholds.</span></div>
+    <div class="mc-step"><div class="mc-number">04</div><b>Run simulations</b><span>Draw new inputs and evaluate the same model thousands of times.</span></div>
+    <div class="mc-step"><div class="mc-number">05</div><b>Analyze results</b><span>Summarize variability, percentiles, sensitivity, and decision risk.</span></div>
+  </div>
+
+  <div class="mc-example">
+    <div><b>Example: annual project cost</b><span>Demand, material price, and downtime are uncertain. One run produces one possible annual cost; 10,000 runs produce a distribution of possible costs.</span></div>
+    <div><b>Decision question</b><span>Instead of asking only “What is the average cost?”, ask “What is the probability that cost exceeds the €130 million budget?”</span></div>
+  </div>
+  <div class="warning"><strong>Important:</strong> Monte Carlo simulation propagates the assumptions you provide. Poor distributions, omitted dependencies, or a weak model can produce precise-looking but misleading results.</div>
+</section>
+
+<section id="ofat">
+  <div class="section-head">
+    <div class="chapter">06</div>
+    <div><h2>One Factor at a Time</h2><p>OFAT changes one input while every other input is held fixed. It is easy to understand, but it cannot reveal how factors work together.</p></div>
+  </div>
+  <div class="ofat-grid">
+    <div class="card">
+      <span class="date">TWO-FACTOR EXAMPLE</span>
+      <h3>Optimizing an oven process</h3>
+      <p>Suppose product quality depends on <strong>temperature</strong> and <strong>baking time</strong>. Start at 180°C for 30 minutes, where the quality score is 70.</p>
+      <div class="ofat-procedure">
+        <div><b>Choose a baseline.</b> Set temperature to 180°C and time to 30 minutes.</div>
+        <div><b>Vary temperature only.</b> Test 160°C, 180°C, and 200°C while time remains 30 minutes.</div>
+        <div><b>Hold the selected temperature.</b> At 200°C, test 20, 30, and 40 minutes.</div>
+        <div><b>Select the best observed setting.</b> OFAT chooses 200°C and 30 minutes, with score 78.</div>
+      </div>
+    </div>
+    <div class="card">
+      <img class="ofat-gif" src="assets/statistics/ofat.gif" alt="Looping One Factor at a Time animation varying oven temperature and baking time, then revealing a missed interaction">
+      <div class="warning"><strong>What OFAT misses:</strong> the combination 180°C and 40 minutes scores 92. The effect of time depends on temperature—this is an interaction.</div>
+    </div>
+  </div>
+  <div class="ofat-lessons">
+    <div class="ofat-lesson good"><h3>When it can be useful</h3><p>Simple troubleshooting, adjusting one controllable setting, or local refinement when interactions are already known to be negligible.</p></div>
+    <div class="ofat-lesson caution"><h3>Main limitations</h3><p>Effects depend on the chosen baseline and search order. OFAT cannot estimate interactions, can miss the best combination, and repeated multi-level searches may become inefficient.</p></div>
+  </div>
+  <div class="takeaway"><strong>Why factorial designs are different:</strong> they vary factors together, so main effects and interactions can be estimated within one planned experiment.</div>
+</section>
+
+<section id="factorial-doe">
+  <div class="section-head">
+    <div class="chapter">07</div>
+    <div><h2>Factorial Design and Design of Experiments</h2><p>Design of Experiments changes several controllable factors together according to a planned structure, making cause-and-effect questions testable.</p></div>
+  </div>
+  <div class="card doe-overview">
+    <div class="doe-overview-grid">
+      <div>
+        <span class="date">DESIGN OF EXPERIMENTS</span>
+        <div class="doe-question">“What changes when I deliberately move the factors?”</div>
+        <p>A <strong>factorial design</strong> tests combinations of factor levels. This reveals which factors matter and whether the effect of one factor depends on another.</p>
+        <p>With two factors at two levels, a full factorial has <strong>2² = 4 combinations</strong>. Three two-level factors require 2³ = 8 combinations.</p>
+      </div>
+      <img class="doe-gif" src="assets/statistics/factorial_design.gif" alt="Looping animation of a two-by-two factorial oven experiment and its interaction plot">
+    </div>
+  </div>
+
+  <div class="doe-terms">
+    <div class="doe-term"><b>Factors</b><span>Inputs deliberately changed by the experimenter—for example, temperature and baking time.</span></div>
+    <div class="doe-term"><b>Levels</b><span>The settings tested for each factor—for example, 180°C and 200°C.</span></div>
+    <div class="doe-term"><b>Response</b><span>The measured outcome used to judge the process—for example, product-quality score.</span></div>
+    <div class="doe-term"><b>Effects</b><span>Changes in the response caused by factors alone or by factors acting together.</span></div>
+  </div>
+
+  <div class="doe-advanced">
+    <article class="doe-advanced-card">
+      <div class="doe-advanced-copy"><h3>Treatment combinations</h3><p>A treatment combination is the complete set of factor levels assigned to one experimental unit. In the oven’s 2² design, 180°C + 30 minutes is one of four treatment combinations.</p></div>
+      <img src="assets/statistics/treatment_combinations.gif" alt="Looping animation highlighting the four treatment combinations in a two-factor experiment">
+    </article>
+    <article class="doe-advanced-card">
+      <div class="doe-advanced-copy"><h3>Fixed and random effects</h3><p>A fixed effect compares deliberately chosen levels, so conclusions concern those settings. A random effect represents variation among levels viewed as a sample from a wider population, such as batches, operators, or sites. A model may contain both.</p></div>
+      <img src="assets/statistics/fixed_random_effects.gif" alt="Looping animation contrasting deliberately selected fixed levels with random levels sampled from a population">
+    </article>
+    <article class="doe-advanced-card">
+      <div class="doe-advanced-copy"><h3>Confounding</h3><p>Effects are confounded when the design does not contain enough independent comparisons to separate them. If A and B always move together, their effects are indistinguishable. Fractional factorial designs use planned confounding, called aliasing.</p></div>
+      <img src="assets/statistics/confounding.gif" alt="Looping animation showing confounded factors becoming separable after crossed combinations are added">
+    </article>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <h3>From a question to a defensible conclusion</h3>
+    <div class="doe-flow">
+      <div><b>01 · Define</b>State the objective, response, factors, and practical effect size.</div>
+      <div><b>02 · Design</b>Choose levels, combinations, replication, blocks, and run order.</div>
+      <div><b>03 · Run</b>Hold the protocol consistent and record every independent observation.</div>
+      <div><b>04 · Analyze</b>Estimate effects, interactions, uncertainty, and model adequacy.</div>
+      <div><b>05 · Confirm</b>Test the selected setting in a separate confirmation run.</div>
+    </div>
+  </div>
+
+  <div class="doe-principles">
+    <div class="doe-principle"><b>Randomization</b><span>Protects comparisons from time trends and unknown ordering effects.</span></div>
+    <div class="doe-principle"><b>Replication</b><span>Provides independent information about experimental variation and precision.</span></div>
+    <div class="doe-principle"><b>Blocking</b><span>Groups similar experimental units so known nuisance variation can be separated.</span></div>
+  </div>
+
+  <div class="takeaway"><strong>DoE is broader than one design:</strong> full and fractional factorial designs support screening and interaction detection; response-surface designs support curvature and optimization. The appropriate design depends on the question, resources, and assumptions.</div>
+</section>
+
+<section id="coding-matrix">
+  <div class="section-head">
+    <div class="chapter">08</div>
+    <div><h2>Factor Coding and the Design Matrix</h2><p>Coding translates physical settings into model columns. The design matrix is the numerical record of which treatment combination was used in each run.</p></div>
+  </div>
+  <div class="card coding-overview">
+    <div class="coding-overview-grid">
+      <div>
+        <span class="date">FROM EXPERIMENT TO MODEL</span>
+        <div class="doe-question">“How do factor settings become estimable effects?”</div>
+        <p>For the oven experiment, code 180°C and 30 minutes as −1, and 200°C and 40 minutes as +1. Every experimental run becomes one row.</p>
+        <p>The interaction column is computed as <strong>AB = A × B</strong>.</p>
+        <div class="model-box">quality = β₀ + βA·A + βB·B + βAB·AB</div>
+      </div>
+      <img class="coding-gif" src="assets/statistics/design_matrix.gif" alt="Looping animation converting physical oven settings into coded factor and interaction columns">
+    </div>
+  </div>
+
+  <div class="coding-types">
+    <div class="coding-type"><b>Symmetric coding</b><code>−1, +1</code><span>Natural for two-level factorials. In a balanced full factorial, centered columns make effect calculations simple and orthogonal.</span></div>
+    <div class="coding-type"><b>Reference coding</b><code>0, 1</code><span>One level becomes the reference. Coefficients describe changes relative to that baseline; this is common for categorical variables.</span></div>
+    <div class="coding-type"><b>Three-level quantitative</b><code>−1, 0, +1</code><span>A centered linear code for low, middle, and high settings. Add a quadratic contrast to represent curvature.</span></div>
+    <div class="coding-type"><b>Orthogonal contrasts</b><code>linear, quadratic…</code><span>Useful for ordered levels. Under suitable balance and spacing, separate contrasts estimate distinct response patterns.</span></div>
+    <div class="coding-type"><b>Standardization</b><code>z = (x − x̄)/s</code><span>Rescales a continuous variable for numerical convenience. It is not a replacement for a well-planned experimental design.</span></div>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <h3>How the matrix connects to the earlier concepts</h3>
+    <div class="matrix-links">
+      <div class="matrix-link"><b>Treatment combinations</b><span>Each row contains the complete factor settings assigned to one experimental run.</span></div>
+      <div class="matrix-link"><b>Main effects and interactions</b><span>Factor columns estimate main effects; product columns such as AB estimate interactions.</span></div>
+      <div class="matrix-link"><b>Confounding</b><span>If two model columns are identical or linearly dependent, their effects cannot be estimated separately.</span></div>
+      <div class="matrix-link"><b>Fixed and random effects</b><span>Fixed effects use the usual model matrix X. Random effects add grouping and variance structure, commonly represented by a separate matrix Z.</span></div>
+    </div>
+  </div>
+
+</section>
+
+<section id="full-fractional">
+  <div class="section-head">
+    <div class="chapter">09</div>
+    <div><h2>Full and Fractional Factorial Designs</h2><p>A full factorial runs every combination. A fractional factorial deliberately runs a structured subset, reducing cost while accepting specific confounding assumptions.</p></div>
+  </div>
+  <div class="card fraction-overview">
+    <div class="fraction-overview-grid">
+      <div>
+        <span class="date">THREE TWO-LEVEL FACTORS</span>
+        <div class="doe-question">“Do we need all eight runs?”</div>
+        <p>With factors A, B, and C at two levels, the full design contains <strong>2³ = 8</strong> treatment combinations.</p>
+        <p>A half-fraction contains <strong>2³⁻¹ = 4</strong> carefully selected combinations. It saves four runs, but some effects become aliased.</p>
+      </div>
+      <img class="fraction-gif" src="assets/statistics/full_vs_fractional.gif" alt="Looping animation comparing eight full-factorial runs with a four-run half-fraction and its aliases">
+    </div>
+  </div>
+
+  <div class="design-compare">
+    <article class="design-option full">
+      <h3>Full factorial</h3>
+      <ul>
+        <li>Runs every factor-level combination.</li>
+        <li>Separates all factorial effects supported by the design.</li>
+        <li>Best when the factor count is manageable and interactions matter.</li>
+        <li>Run count grows quickly: 2⁵ = 32 and 2⁸ = 256.</li>
+      </ul>
+    </article>
+    <article class="design-option fraction">
+      <h3>Fractional factorial</h3>
+      <ul>
+        <li>Runs a balanced, deliberately selected fraction.</li>
+        <li>Useful for screening many factors with a limited run budget.</li>
+        <li>Relies on assumptions that higher-order interactions are negligible.</li>
+        <li>Creates a known alias structure that must guide interpretation.</li>
+      </ul>
+    </article>
+  </div>
+
+  <div class="alias-box">
+    <h3>Example: a one-half fraction with C = AB</h3>
+    <p>The defining relation is <strong>I = ABC</strong>. Multiplying this relation by each effect gives the alias pairs:</p>
+    <div class="model-box">A ≡ BC &nbsp;&nbsp;·&nbsp;&nbsp; B ≡ AC &nbsp;&nbsp;·&nbsp;&nbsp; C ≡ AB</div>
+    <p>If the estimated A contrast is large, this four-run design cannot determine whether A caused it, BC caused it, or both contributed. This is a Resolution III design.</p>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <h3>Resolution describes what is aliased</h3>
+    <div class="resolution-grid">
+      <div class="resolution"><b>Resolution III</b><span>Main effects are aliased with two-factor interactions. Useful only when those interactions are plausibly small.</span></div>
+      <div class="resolution"><b>Resolution IV</b><span>Main effects are clear of two-factor interactions, but two-factor interactions are aliased with each other.</span></div>
+      <div class="resolution"><b>Resolution V</b><span>Main effects and two-factor interactions are mutually clear; two-factor interactions may be aliased with three-factor interactions.</span></div>
+    </div>
+  </div>
+
+  <div class="takeaway"><strong>Selection rule:</strong> use a full factorial when the run count is practical or interactions are central. Use a suitable-resolution fraction for screening when resources are limited, then follow important findings with augmentation or confirmation runs. Replication or other error information is still needed to quantify experimental noise.</div>
+</section>
+
+<section id="space-filling">
+  <div class="section-head">
+    <div class="chapter">10</div>
+    <div><h2>Space-Filling Designs for Global Exploration</h2><p>When factors are continuous and simulations are expensive, space-filling designs spread a limited number of runs across the entire input region.</p></div>
+  </div>
+  <div class="card sfd-overview">
+    <div class="sfd-overview-grid">
+      <div>
+        <span class="date">CONTINUOUS DESIGN SPACE</span>
+        <div class="doe-question">“How can we learn the global response without evaluating a dense grid?”</div>
+        <p>A grid with four settings per factor needs 4² = 16 runs for two factors, but 4⁶ = 4,096 runs for six factors. The growth depends on both the number of factors and levels.</p>
+        <p>A space-filling design uses a chosen run budget to cover the domain, supporting surrogate models, global sensitivity analysis, and computer experiments.</p>
+      </div>
+      <img class="sfd-gif" src="assets/statistics/space_filling.gif" alt="Looping animation comparing a full grid with a Latin hypercube design that places one point in each row and column">
+    </div>
+  </div>
+
+  <div class="sfd-methods">
+    <div class="sfd-method"><b>Latin hypercube sampling</b><span>Divides every input dimension into equal-probability strata and places one run in each stratum of every dimension.</span></div>
+    <div class="sfd-method"><b>Maximin LHS</b><span>Selects or optimizes an LHS to increase the minimum distance between design points, improving multidimensional spread.</span></div>
+    <div class="sfd-method"><b>Orthogonal or optimized LHS</b><span>Adds balance or low-correlation criteria. Correlated real inputs still require an appropriate dependence model.</span></div>
+    <div class="sfd-method"><b>Low-discrepancy sequences</b><span>Sobol’, Halton, and related sequences progressively fill the unit cube for quasi-Monte Carlo integration and exploration.</span></div>
+    <div class="sfd-method"><b>Maximum-entropy designs</b><span>Place points to maximize information or entropy under a chosen covariance model, often for surrogate-model training.</span></div>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <h3>Typical computer-experiment workflow</h3>
+    <div class="sfd-flow">
+      <div><b>01 · Domain</b>Define valid ranges, constraints, and transformations.</div>
+      <div><b>02 · Budget</b>Choose the number of affordable simulation runs.</div>
+      <div><b>03 · Design</b>Generate and diagnose the space-filling points.</div>
+      <div><b>04 · Evaluate</b>Run the simulator at each selected point.</div>
+      <div><b>05 · Emulate</b>Fit and validate a surrogate such as a Gaussian process.</div>
+      <div><b>06 · Use</b>Explore sensitivity, uncertainty, or optimization globally.</div>
+    </div>
+  </div>
+
+  <div class="method-compare">
+    <div><b>Factorial design</b><span>Uses structured level combinations to estimate effects and interactions clearly, usually over a small set of chosen levels.</span></div>
+    <div><b>Space-filling design</b><span>Covers a continuous region to learn an unknown response surface. Classical factorial contrasts are not its primary objective.</span></div>
+    <div><b>Monte Carlo sampling</b><span>Draws according to an input probability distribution to propagate uncertainty. Space filling instead prioritizes coverage of the design region.</span></div>
+  </div>
+
+  <div class="warning"><strong>Design carefully:</strong> there is no universal rule that a full factorial becomes infeasible after a fixed number of factors. Feasibility depends on levels, run cost, constraints, and available budget. High-dimensional space filling also becomes difficult, so diagnostics and sequential augmentation matter.</div>
+</section>
+
+<section id="rsm">
+  <div class="section-head">
+    <div class="chapter">11</div>
+    <div><h2>Response Surface Methodology</h2><p>RSM models curvature in a response and uses that local model to understand, improve, or optimize a process.</p></div>
+  </div>
+  <div class="card rsm-overview">
+    <div class="rsm-overview-grid">
+      <div>
+        <span class="date">LOCAL QUADRATIC MODEL</span>
+        <div class="doe-question">“Where should we move the factors next?”</div>
+        <p>After important quantitative factors have been identified, center and axial runs can augment a factorial design so curvature becomes estimable.</p>
+        <div class="model-box">y = β₀ + Σβᵢxᵢ + Σβᵢᵢxᵢ² + Σβᵢⱼxᵢxⱼ + ε</div>
+        <p>The fitted surface is a local approximation. Its stationary point may be a maximum, minimum, or saddle point.</p>
+      </div>
+      <img class="rsm-gif" src="assets/statistics/response_surface.gif" alt="Looping response surface animation adding center and axial points, fitting contours, and locating an optimum">
+    </div>
+  </div>
+
+  <div class="rsm-designs">
+    <article class="rsm-design"><h3>Central Composite Design</h3><p>Combines a factorial or fractional-factorial core, replicated center points, and axial—or star—points. The axial distance α can be chosen for properties such as rotatability.</p></article>
+    <article class="rsm-design"><h3>Box–Behnken Design</h3><p>Uses combinations where two factors vary while others remain at their centers, plus center points. It avoids all-factor corner combinations and can require fewer runs in some dimensions.</p></article>
+    <article class="rsm-design"><h3>Face-Centered CCD</h3><p>Places axial points at ±1 on the faces of the factor cube. This respects the original bounds and is easy to run, but it is generally not rotatable.</p></article>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <h3>A sequential RSM strategy</h3>
+    <div class="rsm-flow">
+      <div><b>01 · Screen</b>Identify a small set of important quantitative factors.</div>
+      <div><b>02 · Center</b>Add replicated center runs to test for curvature and estimate error.</div>
+      <div><b>03 · Augment</b>Add axial or Box–Behnken points that support quadratic estimation.</div>
+      <div><b>04 · Fit</b>Estimate linear, interaction, and squared terms.</div>
+      <div><b>05 · Diagnose</b>Check residuals, lack of fit, hierarchy, and prediction uncertainty.</div>
+      <div><b>06 · Confirm</b>Run the proposed optimum independently before operational use.</div>
+    </div>
+  </div>
+
+  <div class="rsm-uses">
+    <div class="rsm-use"><b>Contour interpretation</b><span>Elliptical or curved contours reveal curvature, interaction, and the direction of improvement.</span></div>
+    <div class="rsm-use"><b>Multiple responses</b><span>Desirability functions or constrained optimization can balance quality, cost, and safety objectives.</span></div>
+    <div class="rsm-use"><b>Sequential learning</b><span>If the optimum lies outside the current region, move the region and fit a new local model rather than extrapolating far away.</span></div>
+  </div>
+
+  <div class="warning"><strong>Use locally:</strong> a quadratic model is an approximation over the studied region. Respect process constraints, preserve model hierarchy, quantify prediction uncertainty, and confirm the recommended setting experimentally.</div>
+</section>
+
+<section id="anova">
+  <div class="section-head">
+    <div class="chapter">12</div>
+    <div><h2>One-Way ANOVA</h2><p>Analysis of variance tests whether several population means are equal by comparing variation between treatment means with variation among observations inside treatments.</p></div>
+  </div>
+  <div class="card anova-overview">
+    <div class="anova-overview-grid">
+      <div>
+        <span class="date">SINGLE-FACTOR EXPERIMENT</span>
+        <div class="doe-question">“Are the observed mean differences larger than ordinary experimental noise?”</div>
+        <p><strong>Factor:</strong> hardwood concentration, with four treatment levels: 5%, 10%, 15%, and 20%.</p>
+        <p><strong>Response:</strong> tensile strength, with six independent replicates at each level.</p>
+        <div class="model-box">H₀: μ₅ = μ₁₀ = μ₁₅ = μ₂₀<br>H₁: at least one mean differs</div>
+      </div>
+      <img class="anova-gif" src="assets/statistics/anova_variation.gif" alt="Looping animation partitioning one-way ANOVA variation into between-treatment and within-treatment components">
+    </div>
+  </div>
+
+  <div class="anova-data">
+    <div class="anova-group"><b>5% concentration</b><code>7, 8, 15, 11, 9, 10</code><span>mean = 10.00</span></div>
+    <div class="anova-group"><b>10% concentration</b><code>12, 17, 13, 18, 19, 15</code><span>mean = 15.67</span></div>
+    <div class="anova-group"><b>15% concentration</b><code>14, 18, 19, 17, 16, 18</code><span>mean = 17.00</span></div>
+    <div class="anova-group"><b>20% concentration</b><code>19, 25, 22, 23, 18, 20</code><span>mean = 21.17</span></div>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <div class="anova-table-grid">
+      <div>
+        <h3>Reading the ANOVA table</h3>
+        <table class="anova-table">
+          <thead><tr><th>Source</th><th>SS</th><th>df</th><th>MS</th><th>F</th><th>p</th></tr></thead>
+          <tbody>
+            <tr><td>Concentration</td><td>382.792</td><td>3</td><td>127.597</td><td>19.605</td><td>3.59×10⁻⁶</td></tr>
+            <tr><td>Error</td><td>130.167</td><td>20</td><td>6.508</td><td>—</td><td>—</td></tr>
+            <tr><td>Total</td><td>512.958</td><td>23</td><td>—</td><td>—</td><td>—</td></tr>
+          </tbody>
+        </table>
+        <div class="model-box">F = MS<sub>concentration</sub> ÷ MS<sub>error</sub> = 127.597 ÷ 6.508 = 19.605</div>
+      </div>
+      <img class="anova-gif" src="assets/statistics/anova_table.gif" alt="Looping animation building the one-way ANOVA table and F ratio">
+    </div>
+  </div>
+
+  <div class="anova-rules">
+    <div class="anova-rule"><b>Sums of squares</b><span>Total variation partitions exactly: SST = SSfactor + SSerror = 382.792 + 130.167.</span></div>
+    <div class="anova-rule"><b>Degrees of freedom</b><span>Total df = N−1 = 23; factor df = a−1 = 3; error df = N−a = 20.</span></div>
+    <div class="anova-rule"><b>Mean squares</b><span>Divide each sum of squares by its df. MSerror estimates the common within-treatment variance.</span></div>
+    <div class="anova-rule"><b>F and p-value</b><span>A large F means treatment variation is large relative to noise. Here p ≈ 0.0000036.</span></div>
+  </div>
+
+  <div class="takeaway"><strong>Conclusion:</strong> reject H₀; hardwood concentration affects mean tensile strength. ANOVA alone does not identify every differing pair, so use planned contrasts or a multiplicity-controlled post-hoc method such as Tukey’s procedure. The factor explains η² = 382.792 / 512.958 ≈ 74.6% of the observed variation in this dataset.</div>
+
+  <div class="warning"><strong>Classical one-way ANOVA assumptions:</strong> independent observations, approximately normal residuals within treatments, and a common error variance. Inspect residuals and the design—not only raw-data normality. If variances differ substantially, consider Welch’s ANOVA or a suitable model.</div>
+</section>
+
+<section id="factorial-example">
+  <div class="section-head">
+    <div class="chapter">13</div>
+    <div><h2>Full-Factorial ANOVA Example and Replication Planning</h2><p>A three-factor, two-level experiment has eight treatment combinations. Independent replication supplies pure error, supports F-tests, and controls the precision of estimated means and effects.</p></div>
+  </div>
+  <div class="card worked-overview">
+    <div class="worked-overview-grid">
+      <div>
+        <span class="date">2³ FULL FACTORIAL</span>
+        <div class="doe-question">“Which factors and interactions change the response?”</div>
+        <p>Factors A, B, and C each have low and high levels. All 2³ = 8 combinations are tested twice, giving <strong>16 independent runs</strong>.</p>
+        <p>The entire 16-run order should be randomized. Each pair of observations at a treatment combination estimates its cell mean and contributes to pure experimental error.</p>
+      </div>
+      <img class="worked-gif" src="assets/statistics/factorial_worked_example.gif" alt="Looping example showing all eight runs of a three-factor full factorial with two independent replicates">
+    </div>
+  </div>
+
+  <div class="notation-grid">
+    <div class="notation"><b>Geometric coding</b><code>− − −, + − −, …, + + +</code><span>Uses low and high signs directly for A, B, and C.</span></div>
+    <div class="notation"><b>Letter labels</b><code>(1), a, b, ab, c, ac, bc, abc</code><span>A letter appears when that factor is at its high level.</span></div>
+    <div class="notation"><b>Binary coding</b><code>000, 100, 010, …, 111</code><span>Uses 0 for low and 1 for high. The analysis here uses symmetric −1/+1 coding.</span></div>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <h3>Estimated effects from differences in means</h3>
+    <p>For any main factor or interaction <strong>X</strong>, split the observations by the sign of its coded column and subtract the two group means:</p>
+    <div class="model-box">Effect(X) = ȳ<sub>X=+1</sub> − ȳ<sub>X=−1</sub> = Contrast(X) / [r × 2<sup>k−1</sup>]</div>
+    <p>Here, <strong>r = 2</strong> replicates and <strong>k = 3</strong> factors, so every contrast is divided by 2 × 2² = 8. For an interaction, multiply the relevant coded columns first—for example, AC = A × C. The effects below are ordered by <strong>absolute effect size</strong>.</p>
+    <div class="effect-grid">
+      <div class="effect-card"><span class="effect-rank">1 · MAIN FACTOR</span><b>Factor C</b><strong>+306.125</strong><code>929.125 − 623.000 = +306.125</code><span>F = 166.41, p ≈ 1.23×10⁻⁶. This is the largest effect.</span></div>
+      <div class="effect-card"><span class="effect-rank">2 · TWO-FACTOR INTERACTION</span><b>Interaction AC</b><strong>−153.625</strong><code>699.250 − 852.875 = −153.625</code><span>F = 41.91, p ≈ 0.000193. The effect of C depends on A.</span></div>
+      <div class="effect-card"><span class="effect-rank">3 · MAIN FACTOR</span><b>Factor A</b><strong>−101.625</strong><code>725.250 − 826.875 = −101.625</code><span>F = 18.34, p ≈ 0.00268. Interpret A together with AC.</span></div>
+      <div class="effect-card"><span class="effect-rank">4 · TWO-FACTOR INTERACTION</span><b>Interaction AB</b><strong>−24.875</strong><code>763.625 − 788.500 = −24.875</code><span>F = 1.10, p ≈ 0.325. The AB interaction is small relative to pure error.</span></div>
+      <div class="effect-card"><span class="effect-rank">5 · MAIN FACTOR</span><b>Factor B</b><strong>+7.375</strong><code>779.750 − 772.375 = +7.375</code><span>F = 0.097, p ≈ 0.764. Little evidence of an average B effect.</span></div>
+      <div class="effect-card"><span class="effect-rank">6 · THREE-FACTOR INTERACTION</span><b>Interaction ABC</b><strong>+5.625</strong><code>778.875 − 773.250 = +5.625</code><span>F = 0.056, p ≈ 0.819. The three-factor interaction is very small.</span></div>
+      <div class="effect-card"><span class="effect-rank">7 · TWO-FACTOR INTERACTION</span><b>Interaction BC</b><strong>−2.125</strong><code>775.000 − 777.125 = −2.125</code><span>F = 0.008, p ≈ 0.931. This is the smallest estimated effect.</span></div>
+    </div>
+    <div class="takeaway"><strong>Reading the sign:</strong> a positive effect means the mean response is higher in the +1 group; a negative effect means it is lower. Effect size ranks practical magnitude, while the F-test uses MSPE = 2,252.56 to judge that magnitude against experimental noise.</div>
+    <div class="warning"><strong>Hierarchy and interpretation:</strong> when an interaction is important, retain and interpret its component main effects. Average main effects alone can hide conditional behavior.</div>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <div class="replication-grid">
+      <div>
+        <h3>Pure error from replication</h3>
+        <div class="replication-steps">
+          <div><b>Compute each cell mean.</b> Compare every observation with the mean of its treatment combination.</div>
+          <div><b>Pool within-cell deviations.</b> SSPE = 18,020.5 across the eight combinations.</div>
+          <div><b>Count pure-error df.</b> With r = 2, dfPE = 8(r−1) = 8.</div>
+          <div><b>Estimate variance.</b> MSPE = SSPE/dfPE = 2,252.56, so the estimated run-level SD is 47.46.</div>
+        </div>
+      </div>
+      <img class="worked-gif" src="assets/statistics/mspe_replication.gif" alt="Looping animation deriving mean square pure error and showing confidence-interval precision improving with replication">
+    </div>
+  </div>
+</section>
+
+<section id="hands-on-exercise">
+  <div class="section-head">
+    <div class="chapter">14</div>
+    <div><h2>Hands-on Full-Factorial Exercise</h2><p>Now apply the ideas from the previous sections. This video introduces the practical exercise and explains what you will build and analyze.</p></div>
+  </div>
+  <div class="card exercise-intro">
+    <span class="date">PRACTICAL EXERCISE · INTRODUCTION</span>
+    <h3>From concepts to analysis</h3>
+    <p>Watch the introduction, then use the exercise data to construct the full-factorial design, calculate the main effects and interactions, estimate pure error, and interpret the ANOVA results.</p>
+    <video class="exercise-video" controls playsinline preload="metadata" aria-label="Introduction to the hands-on full-factorial exercise">
+      <source src="assets/videos/full-factorial-exercise-introduction.mp4" type="video/mp4">
+      Your browser does not support embedded MP4 video.
+    </video>
+    <p class="exercise-note">If the player does not open, <a href="assets/videos/full-factorial-exercise-introduction.mp4">download the exercise introduction video</a>.</p>
+  </div>
+</section>
+
+<section id="exercise-results">
+  <div class="section-head">
+    <div class="chapter">15</div>
+    <div><h2>Exercise Results: the 2⁵ Scenario</h2><p>The hands-on exercise analyzes a complete five-factor design. Inflation was measured five times at every combination, so its effects can be tested against pure error.</p></div>
+  </div>
+
+  <div class="card exercise-intro">
+    <span class="date">EDUCATIONAL SCENARIO · 2^5</span>
+    <h3>Five actions and 32 combinations</h3>
+    <p>Each factor is coded −1 at its low level and +1 at its high level. Every combination appears once, so the design is a balanced full factorial.</p>
+    <div class="factor-key">
+      <div><b>A</b><span>Trade embargo</span></div>
+      <div><b>B</b><span>Sabotage operations</span></div>
+      <div><b>C</b><span>Diplomatic sanctions</span></div>
+      <div><b>D</b><span>Cyber warfare operations</span></div>
+      <div><b>E</b><span>Anti-satellite operations</span></div>
+    </div>
+    <div class="result-facts">
+      <div class="result-fact"><strong>32</strong><span>treatment combinations in the 2^5 design</span></div>
+      <div class="result-fact"><strong>160</strong><span>inflation observations, 5 per run</span></div>
+      <div class="result-fact"><strong>31</strong><span>effects in the complete model</span></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <h3>Inflation main effects</h3>
+    <p>Average the five inflation readings in each run, then compare the 16 high-level runs with the 16 low-level runs:</p>
+    <div class="model-box">Effect(X) = ȳ<sub>X=+1</sub> − ȳ<sub>X=−1</sub> = Contrast(X) / 16</div>
+    <p>For trade embargo, the contrast is 33.113, so its effect is 33.113 / 16 = <strong>+2.070</strong> percentage points. With five replicates, its sum of squares is SS<sub>A</sub> = 5 × 33.113² / 32 = 171.324.</p>
+    <div class="mean-bars" aria-label="Inflation main effects ordered by size">
+      <div class="mean-bar"><span>A · Trade embargo</span><i style="--w:100%"></i><em>+2.070</em></div>
+      <div class="mean-bar"><span>C · Diplomatic sanctions</span><i style="--w:51%"></i><em>+1.050</em></div>
+      <div class="mean-bar"><span>E · Anti-satellite</span><i style="--w:46%"></i><em>+0.956</em></div>
+      <div class="mean-bar"><span>B · Sabotage</span><i style="--w:31%"></i><em>+0.643</em></div>
+      <div class="mean-bar quiet"><span>D · Cyber operations</span><i style="--w:16%"></i><em>+0.327</em></div>
+    </div>
+    <p>A positive sign means mean inflation is higher at the high coded level. D is the smallest main effect and is not significant against the pure-error estimate (F = 2.00, p ≈ 0.160).</p>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <div class="result-split">
+      <div>
+        <h3>The A × B interaction</h3>
+        <p>The average effect of A hides a change in slope. When sabotage is low, raising the embargo increases inflation by 0.971 points. When sabotage is high, the same change increases it by 3.169 points.</p>
+        <div class="model-box">AB = (3.168625 − 0.9705) / 2 = +1.099</div>
+        <p>The lines are not parallel: embargo and sabotage reinforce each other. Because AB is important, both A and B stay in the interpretation.</p>
+      </div>
+      <div class="ab-matrix" aria-label="Mean inflation at each combination of A and B">
+        <div><span>Mean inflation</span></div>
+        <div><b>B = −1</b><span>low sabotage</span></div>
+        <div><b>B = +1</b><span>high sabotage</span></div>
+        <div><b>A = −1</b></div>
+        <div><b>5.792</b><span>percent</span></div>
+        <div><b>5.336</b><span>percent</span></div>
+        <div><b>A = +1</b></div>
+        <div><b>6.763</b><span>percent</span></div>
+        <div><b>8.504</b><span>percent</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <h3>Pareto chart of the effects and interactions</h3>
+    <p>All 31 terms are ordered by absolute effect. The bars use |ȳ<sub>+1</sub> − ȳ<sub>−1</sub>|. The reference line is the 5% margin of error:</p>
+    <div class="model-box">|effect| = t<sub>0.975, 128</sub> √(MSPE / 40) = 0.46</div>
+    <img class="pareto-chart" src="assets/statistics/inflation_effects_pareto.svg" alt="Pareto chart of all 31 inflation effects, ranked by absolute size, with a 5 percent reference at 0.46">
+    <div class="pareto-key"><span><b>Teal bars</b> cross the 5% line: A, AB, C, AC, E, B, BCD, and ABC.</span><span><b>Gray bars</b> are smaller than the reference.</span></div>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <h3>Effects that stand out in the inflation ANOVA</h3>
+    <p>Pure error comes only from the five inflation readings inside each of the 32 runs:</p>
+    <div class="model-box">SSPE = 273.923 · df = 32(5−1) = 128 · MSPE = 2.140</div>
+    <p>The 31 model sums of squares add to 424.409. Together with pure error they recover the corrected total: 424.409 + 273.923 = 698.332, on 159 degrees of freedom. Eight effects have p &lt; 0.05, ranked here by absolute size.</p>
+    <div class="table-scroll">
+      <table class="anova-table">
+        <thead><tr><th>Rank</th><th>Term</th><th>Meaning</th><th>Effect</th><th>F</th><th>p-value</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>A</td><td>Trade embargo</td><td>+2.070</td><td>80.06</td><td>3.53×10⁻¹⁵</td></tr>
+          <tr><td>2</td><td>AB</td><td>Embargo × sabotage</td><td>+1.099</td><td>22.58</td><td>5.33×10⁻⁶</td></tr>
+          <tr><td>3</td><td>C</td><td>Diplomatic sanctions</td><td>+1.050</td><td>20.62</td><td>1.28×10⁻⁵</td></tr>
+          <tr><td>4</td><td>AC</td><td>Embargo × sanctions</td><td>+1.015</td><td>19.26</td><td>2.36×10⁻⁵</td></tr>
+          <tr><td>5</td><td>E</td><td>Anti-satellite operations</td><td>+0.956</td><td>17.10</td><td>6.38×10⁻⁵</td></tr>
+          <tr><td>6</td><td>B</td><td>Sabotage operations</td><td>+0.643</td><td>7.72</td><td>0.0063</td></tr>
+          <tr><td>7</td><td>BCD</td><td>Three-factor interaction</td><td>−0.539</td><td>5.43</td><td>0.021</td></tr>
+          <tr><td>8</td><td>ABC</td><td>Three-factor interaction</td><td>−0.472</td><td>4.16</td><td>0.044</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="takeaway"><strong>Result:</strong> moving from low to high generally raises inflation. Trade embargo is the dominant average change. Diplomatic sanctions and anti-satellite operations also raise it, and the AB and AC interactions show that the embargo effect depends on the other actions. Sabotage is smaller on average, but it remains relevant because it changes the embargo slope.</div>
+</section>
+
+<section id="why-f">
+  <div class="section-head">
+    <div class="chapter">16</div>
+    <div><h2>Why the F Distribution</h2><p>The ANOVA table compares two variance estimates. The distribution changes with the column: from the observations, to the sums of squares, to the mean squares, and then to their ratio.</p></div>
+  </div>
+
+  <div class="card worked-overview">
+    <span class="date">ALONG THE ANOVA TABLE</span>
+    <div class="doe-question">“Why does the table end with F, rather than a normal or a chi-square probability?”</div>
+    <p>Follow the variables that appear in the table. Each one has the distribution that justifies the next column. The unknown σ² stays in the arithmetic until two variance estimates are divided.</p>
+  </div>
+
+  <div class="f-steps">
+    <article class="f-step"><code>1 · Observations y</code><b>Normal, and the table continues</b><span>Under the model the observations are independent and normal, each with a treatment mean and one common variance σ². A probability from that normal curve would require the value of σ². The experiment does not know it, so the ANOVA table does not stop at the raw data.</span></article>
+    <article class="f-step"><code>2 · Deviations</code><b>The pieces that will be squared</b><span>Split each observation into the grand mean, a treatment deviation, and a residual. The three pieces add back to y. These are the pieces the next column squares.</span></article>
+    <article class="f-step"><code>3 · Sums of squares</code><b>Chi-square after dividing by σ²</b><span>SST = SS<sub>factor</sub> + SS<sub>error</sub>. A sum of squares of normal deviations, divided by the unknown σ², is chi-square. SS<sub>error</sub> / σ² is chi-square on the error degrees of freedom whether or not the factor matters. SS<sub>factor</sub> / σ² is central chi-square only when the null hypothesis is true and the factor adds no extra variation. One chi-square still contains σ², so a sum-of-squares column alone is not a probability.</span></article>
+    <article class="f-step"><code>4 · Degrees of freedom</code><b>The count that makes a variance</b><span>Factor df is the number of independent treatment comparisons. Error df is the number of leftover independent residuals. Dividing a sum of squares by its degrees of freedom turns that sum into a variance estimate.</span></article>
+    <article class="f-step"><code>5 · Mean squares</code><b>Chi-square divided by its df</b><span>MS = SS / df. MS<sub>error</sub> estimates σ². Under the null, MS<sub>factor</sub> also estimates σ². MS / σ² is that chi-square divided by its degrees of freedom. σ² is still unknown, so a mean square is not yet a tail probability.</span></article>
+    <article class="f-step ratio"><code>6 · The F ratio</code><b>Two variances, and σ² cancels</b><span>F = MS<sub>factor</sub> / MS<sub>error</sub>. The same σ² is inside both mean squares, so it cancels. The ratio of two independent chi-squares, each divided by its df, is the F distribution with those two degrees of freedom. The ANOVA table ends with F, and the p-value is the upper tail of that F curve, not a normal or a chi-square curve. A large F means the factor mean square is large relative to the residual variance.</span></article>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <h3>From one column to the next</h3>
+    <p>Each formula is the distribution that appears when that column is formed.</p>
+    <div class="model-box">y = grand mean + treatment deviation + residual<br>residuals independent and normal, mean 0, variance σ²</div>
+    <div class="model-box">SST = SS<sub>factor</sub> + SS<sub>error</sub><br>SS<sub>error</sub> / σ² ~ χ² on the error df<br>SS<sub>factor</sub> / σ² ~ central χ² on the factor df, only if H₀ is true</div>
+    <div class="model-box">MS = SS / df<br>MS / σ² = (SS / σ²) / df<br>F = MS<sub>factor</sub> / MS<sub>error</sub> ~ F(factor df, error df) under H₀</div>
+    <p><strong>The one-degree-of-freedom bridge.</strong> When the numerator has 1 df, the F reference and the t reference are the same comparison written two ways. t is that bridge, not a separate destination. ANOVA needs F because the numerator can have more than one degree of freedom.</p>
+    <div class="model-box">F(1, ν) = t<sub>ν</sub>²</div>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <h3>Trade embargo on these columns</h3>
+    <p>The inflation analysis already has the embargo contrast and the pure-error variance. In the ANOVA skeleton, each number sits in the column whose distribution was named above.</p>
+    <div class="table-scroll">
+      <table class="anova-table">
+        <thead><tr><th>Source</th><th>SS</th><th>df</th><th>MS</th><th>F</th></tr></thead>
+        <tbody>
+          <tr><td>Trade embargo</td><td>171.324</td><td>1</td><td>171.324</td><td>80.06</td></tr>
+          <tr><td>Pure error</td><td>273.923</td><td>128</td><td>2.140</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="factor-key">
+      <div><b>Source</b><span>The embargo row against pure error.</span></div>
+      <div><b>SS · χ²</b><span>Chi-square only after dividing by σ².</span></div>
+      <div><b>df</b><span>1 treatment comparison, and 128 leftover residuals.</span></div>
+      <div><b>MS · χ²/df</b><span>A variance estimate. σ² is still inside it.</span></div>
+      <div><b>F</b><span>The ratio. Upper tail of F(1, 128).</span></div>
+    </div>
+    <div class="model-box">MS<sub>A</sub> = 171.324 / 1 = 171.324<br>MSPE = 273.923 / 128 = 2.140<br>F = 171.324 / 2.140 = 80.06 on F(1, 128)</div>
+    <p>The upper 5% point of F(1, 128) is about 3.92. The observed 80.06 lies above it, and the upper-tail p-value is about 3.5×10⁻¹⁵. That large F means the embargo mean square is large relative to the pure-error variance. The numerator has 1 df, so this F is a t on 128 df, squared.</p>
+  </div>
+
+  <div class="takeaway"><strong>F is used because the ANOVA table compares two variance estimates.</strong> The distribution changes exactly when the variable changes: from the observations, to the sums of squares, to the mean squares, to their ratio.</div>
+  <div class="warning"><strong>The central F is the null reference.</strong> It needs independent normal errors and independent sums of squares. Both mean squares estimate σ² only when the factor adds no extra variation. If the factor is present, the numerator chi-square is non-central and the ratio tends to be larger. Non-normal errors or unequal variances change the meaning of the tail probability.</div>
+</section>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <div><strong>From Scurvy to Statistics</strong><br><a href="index.html">Return to the DoE course</a></div>
+    <div class="sources">Historical sources: James Lind, <em>A Treatise of the Scurvy</em> (1753); R. A. Fisher, <em>The Design of Experiments</em> (1935). The tea-party participant is identified in historical accounts as Muriel Bristol. “First clinical trial” is a conventional shorthand; earlier medical comparisons existed and modern registration came much later.</div>
+  </div>
+</footer>
+
+<script>
+const treatments=document.querySelector("#treatments");
+const lindResult=document.querySelector("#lindResult");
+document.querySelector("#revealLind").addEventListener("click",()=>{
+  treatments.classList.add("revealed");
+  lindResult.textContent="The citrus pair improved fastest—evidence pointing toward a remedy for scurvy.";
+});
+
+const cups=[...document.querySelectorAll(".cup")];
+const teaResult=document.querySelector("#teaResult");
+document.querySelector("#runTea").addEventListener("click",()=>{
+  cups.forEach(c=>c.classList.remove("correct"));
+  teaResult.textContent="";
+  cups.forEach((cup,index)=>setTimeout(()=>cup.classList.add("correct"),180*index));
+  setTimeout(()=>teaResult.textContent="8 out of 8 correct. Under Fisher’s design, guessing has only a 1 in 70 chance of doing this well.",1550);
+});
+</script>
+</body>
+</html>
