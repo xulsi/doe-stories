@@ -148,6 +148,7 @@ footer a{color:#9fd8e0}
 .anim-brand{position:absolute;z-index:2;right:8px;bottom:8px;display:flex;align-items:center;gap:6px;padding:4px 7px;background:#ffffffeb;border:1px solid var(--grid);border-radius:10px;pointer-events:none}
 .anim-brand .logo-sim4{height:20px;width:auto;display:block}
 .anim-brand .logo-team{height:28px;width:auto;display:block}
+.later-section{display:none}
 @media(max-width:800px){.section-head .brand-row{justify-content:flex-start;margin-top:8px}.brand-row .logo-sim4{height:28px}.brand-row .logo-team{height:38px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
@@ -178,14 +179,8 @@ footer a{color:#9fd8e0}
   <a href="#monte-carlo">Monte Carlo</a>
   <a href="#ofat">One factor at a time</a>
   <a href="#factorial-doe">Factorial Design &amp; DoE</a>
-  <a href="#coding-matrix">Coding &amp; Design Matrix</a>
-  <a href="#full-fractional">Full vs Fractional</a>
+  <a href="#coding-matrix">Coding &amp; factorials</a>
   <a href="#space-filling">Space-Filling Designs</a>
-  <a href="#rsm">Response Surface Methodology</a>
-  <a href="#anova">One-Way ANOVA</a>
-  <a href="#factorial-example">2³ Example &amp; Replication</a>
-  <a href="#exercise-results">Exercise Results</a>
-  <a href="#why-f">Why F</a>
 </nav>
 
 <main>
@@ -454,101 +449,31 @@ footer a{color:#9fd8e0}
 <section id="coding-matrix">
   <div class="section-head">
     <div class="chapter">08</div>
-    <div><h2>Factor Coding and the Design Matrix</h2><p>Coding translates physical settings into model columns. The design matrix is the numerical record of which treatment combination was used in each run.</p></div>
+    <div><h2>Coding, the design matrix, and fractional designs</h2><p>Coding turns each setting into a column. A full factorial uses every combination of those columns. A fraction uses a planned subset, and some effects then share a column.</p></div>
   <div class="brand-row"><img class="logo-sim4" src="assets/logos/sim4future.png" alt="SIM4Future"><img class="logo-team" src="assets/logos/simulation-team.png" alt="Simulation Team"></div></div>
-  <div class="card coding-overview">
-    <div class="coding-overview-grid">
-      <div>
-        <span class="date">FROM EXPERIMENT TO MODEL</span>
-        <div class="doe-question">“How do factor settings become estimable effects?”</div>
-        <p>For the oven experiment, code 180°C and 30 minutes as −1, and 200°C and 40 minutes as +1. Every experimental run becomes one row.</p>
-        <p>The interaction column is computed as <strong>AB = A × B</strong>.</p>
-        <div class="model-box">quality = β₀ + βA·A + βB·B + βAB·AB</div>
-      </div>
-      <div class="anim-frame"><img class="coding-gif" src="assets/statistics/design_matrix.gif" alt="Looping animation converting physical oven settings into coded factor and interaction columns"><div class="anim-brand" aria-hidden="true"><img class="logo-sim4" src="assets/logos/sim4future.png" alt=""><img class="logo-team" src="assets/logos/simulation-team.png" alt=""></div></div>
-    </div>
-  </div>
-
-  <div class="coding-types">
-    <div class="coding-type"><b>Symmetric coding</b><code>−1, +1</code><span>Natural for two-level factorials. In a balanced full factorial, centered columns make effect calculations simple and orthogonal.</span></div>
-    <div class="coding-type"><b>Reference coding</b><code>0, 1</code><span>One level becomes the reference. Coefficients describe changes relative to that baseline; this is common for categorical variables.</span></div>
-    <div class="coding-type"><b>Three-level quantitative</b><code>−1, 0, +1</code><span>A centered linear code for low, middle, and high settings. Add a quadratic contrast to represent curvature.</span></div>
-    <div class="coding-type"><b>Orthogonal contrasts</b><code>linear, quadratic…</code><span>Useful for ordered levels. Under suitable balance and spacing, separate contrasts estimate distinct response patterns.</span></div>
-    <div class="coding-type"><b>Standardization</b><code>z = (x − x̄)/s</code><span>Rescales a continuous variable for numerical convenience. It is not a replacement for a well-planned experimental design.</span></div>
-  </div>
-
-  <div class="card" style="margin-top:18px">
-    <h3>How the matrix connects to the earlier concepts</h3>
-    <div class="matrix-links">
-      <div class="matrix-link"><b>Treatment combinations</b><span>Each row contains the complete factor settings assigned to one experimental run.</span></div>
-      <div class="matrix-link"><b>Main effects and interactions</b><span>Factor columns estimate main effects; product columns such as AB estimate interactions.</span></div>
-      <div class="matrix-link"><b>Confounding</b><span>If two model columns are identical or linearly dependent, their effects cannot be estimated separately.</span></div>
-      <div class="matrix-link"><b>Fixed and random effects</b><span>Fixed effects use the usual model matrix X. Random effects add grouping and variance structure, commonly represented by a separate matrix Z.</span></div>
-    </div>
-  </div>
-
-</section>
-
-<section id="full-fractional">
-  <div class="section-head">
-    <div class="chapter">09</div>
-    <div><h2>Full and Fractional Factorial Designs</h2><p>A full factorial runs every combination. A fractional factorial deliberately runs a structured subset, reducing cost while accepting specific confounding assumptions.</p></div>
-  <div class="brand-row"><img class="logo-sim4" src="assets/logos/sim4future.png" alt="SIM4Future"><img class="logo-team" src="assets/logos/simulation-team.png" alt="Simulation Team"></div></div>
-  <div class="card fraction-overview">
-    <div class="fraction-overview-grid">
-      <div>
-        <span class="date">THREE TWO-LEVEL FACTORS</span>
-        <div class="doe-question">“Do we need all eight runs?”</div>
-        <p>With factors A, B, and C at two levels, the full design contains <strong>2³ = 8</strong> treatment combinations.</p>
-        <p>A half-fraction contains <strong>2³⁻¹ = 4</strong> carefully selected combinations. It saves four runs, but some effects become aliased.</p>
-      </div>
-      <div class="anim-frame"><img class="fraction-gif" src="assets/statistics/full_vs_fractional.gif" alt="Looping animation comparing eight full-factorial runs with a four-run half-fraction and its aliases"><div class="anim-brand" aria-hidden="true"><img class="logo-sim4" src="assets/logos/sim4future.png" alt=""><img class="logo-team" src="assets/logos/simulation-team.png" alt=""></div></div>
-    </div>
-  </div>
 
   <div class="design-compare">
     <article class="design-option full">
-      <h3>Full factorial</h3>
-      <ul>
-        <li>Runs every factor-level combination.</li>
-        <li>Separates all factorial effects supported by the design.</li>
-        <li>Best when the factor count is manageable and interactions matter.</li>
-        <li>Run count grows quickly: 2⁵ = 32 and 2⁸ = 256.</li>
-      </ul>
+      <div class="anim-frame"><img class="coding-gif" src="assets/statistics/design_matrix.gif" alt="Looping animation converting physical oven settings into coded factor and interaction columns"><div class="anim-brand" aria-hidden="true"><img class="logo-sim4" src="assets/logos/sim4future.png" alt=""><img class="logo-team" src="assets/logos/simulation-team.png" alt=""></div></div>
+      <h3>From settings to a matrix</h3>
+      <p>Code the low and high level of a two-level factor as −1 and +1. Each run is one row of the design matrix, and the interaction column is <strong>AB = A × B</strong>.</p>
+      <div class="model-box">quality = β₀ + βA·A + βB·B + βAB·AB</div>
+      <p>Other codes, such as 0/1 or −1/0/+1, only change how a coefficient is read. If two columns match, or one is a combination of the others, those effects cannot be separated.</p>
     </article>
     <article class="design-option fraction">
-      <h3>Fractional factorial</h3>
-      <ul>
-        <li>Runs a balanced, deliberately selected fraction.</li>
-        <li>Useful for screening many factors with a limited run budget.</li>
-        <li>Relies on assumptions that higher-order interactions are negligible.</li>
-        <li>Creates a known alias structure that must guide interpretation.</li>
-      </ul>
+      <div class="anim-frame"><img class="fraction-gif" src="assets/statistics/full_vs_fractional.gif" alt="Looping animation comparing eight full-factorial runs with a four-run half-fraction and its aliases"><div class="anim-brand" aria-hidden="true"><img class="logo-sim4" src="assets/logos/sim4future.png" alt=""><img class="logo-team" src="assets/logos/simulation-team.png" alt=""></div></div>
+      <h3>All combinations, or a fraction</h3>
+      <p>Three factors at two levels need <strong>2³ = 8</strong> runs to test every combination. That full factorial can separate the effects the design supports, but the count grows quickly: 2⁵ = 32 and 2⁸ = 256.</p>
+      <p>A half-fraction keeps <strong>2³⁻¹ = 4</strong> runs. With <strong>I = ABC</strong>, the aliases are A ≡ BC, B ≡ AC, and C ≡ AB. A large A contrast might be A, the BC interaction, or both. That is Resolution III. Resolution IV keeps main effects clear of two-factor interactions. Resolution V also keeps two-factor interactions clear of one another.</p>
     </article>
   </div>
 
-  <div class="alias-box">
-    <h3>Example: a one-half fraction with C = AB</h3>
-    <p>The defining relation is <strong>I = ABC</strong>. Multiplying this relation by each effect gives the alias pairs:</p>
-    <div class="model-box">A ≡ BC &nbsp;&nbsp;·&nbsp;&nbsp; B ≡ AC &nbsp;&nbsp;·&nbsp;&nbsp; C ≡ AB</div>
-    <p>If the estimated A contrast is large, this four-run design cannot determine whether A caused it, BC caused it, or both contributed. This is a Resolution III design.</p>
-  </div>
-
-  <div class="card" style="margin-top:18px">
-    <h3>Resolution describes what is aliased</h3>
-    <div class="resolution-grid">
-      <div class="resolution"><b>Resolution III</b><span>Main effects are aliased with two-factor interactions. Useful only when those interactions are plausibly small.</span></div>
-      <div class="resolution"><b>Resolution IV</b><span>Main effects are clear of two-factor interactions, but two-factor interactions are aliased with each other.</span></div>
-      <div class="resolution"><b>Resolution V</b><span>Main effects and two-factor interactions are mutually clear; two-factor interactions may be aliased with three-factor interactions.</span></div>
-    </div>
-  </div>
-
-  <div class="takeaway"><strong>Selection rule:</strong> use a full factorial when the run count is practical or interactions are central. Use a suitable-resolution fraction for screening when resources are limited, then follow important findings with augmentation or confirmation runs. Replication or other error information is still needed to quantify experimental noise.</div>
+  <div class="takeaway"><strong>Selection rule:</strong> use the full factorial when the runs are affordable and interactions matter. Use a fraction of suitable resolution to screen many factors, then confirm what stands out. Replication, or another source of error, is still needed to judge noise.</div>
 </section>
 
 <section id="space-filling">
   <div class="section-head">
-    <div class="chapter">10</div>
+    <div class="chapter">09</div>
     <div><h2>Space-Filling Designs for Global Exploration</h2><p>When factors are continuous and simulations are expensive, space-filling designs spread a limited number of runs across the entire input region.</p></div>
   <div class="brand-row"><img class="logo-sim4" src="assets/logos/sim4future.png" alt="SIM4Future"><img class="logo-team" src="assets/logos/simulation-team.png" alt="Simulation Team"></div></div>
   <div class="card sfd-overview">
@@ -592,7 +517,7 @@ footer a{color:#9fd8e0}
   <div class="warning"><strong>Design carefully:</strong> there is no universal rule that a full factorial becomes infeasible after a fixed number of factors. Feasibility depends on levels, run cost, constraints, and available budget. High-dimensional space filling also becomes difficult, so diagnostics and sequential augmentation matter.</div>
 </section>
 
-<section id="rsm">
+<section id="rsm" class="later-section">
   <div class="section-head">
     <div class="chapter">11</div>
     <div><h2>Response Surface Methodology</h2><p>RSM models curvature in a response and uses that local model to understand, improve, or optimize a process.</p></div>
@@ -637,7 +562,7 @@ footer a{color:#9fd8e0}
   <div class="warning"><strong>Use locally:</strong> a quadratic model is an approximation over the studied region. Respect process constraints, preserve model hierarchy, quantify prediction uncertainty, and confirm the recommended setting experimentally.</div>
 </section>
 
-<section id="anova">
+<section id="anova" class="later-section">
   <div class="section-head">
     <div class="chapter">12</div>
     <div><h2>One-Way ANOVA</h2><p>Analysis of variance tests whether several population means are equal by comparing variation between treatment means with variation among observations inside treatments.</p></div>
@@ -692,7 +617,7 @@ footer a{color:#9fd8e0}
   <div class="warning"><strong>Classical one-way ANOVA assumptions:</strong> independent observations, approximately normal residuals within treatments, and a common error variance. Inspect residuals and the design—not only raw-data normality. If variances differ substantially, consider Welch’s ANOVA or a suitable model.</div>
 </section>
 
-<section id="factorial-example">
+<section id="factorial-example" class="later-section">
   <div class="section-head">
     <div class="chapter">13</div>
     <div><h2>Full-Factorial ANOVA Example and Replication Planning</h2><p>A three-factor, two-level experiment has eight treatment combinations. Independent replication supplies pure error, supports F-tests, and controls the precision of estimated means and effects.</p></div>
@@ -749,7 +674,7 @@ footer a{color:#9fd8e0}
   </div>
 </section>
 
-<section id="exercise-results">
+<section id="exercise-results" class="later-section">
   <div class="section-head">
     <div class="chapter">15</div>
     <div><h2>Exercise Results: the 2⁵ Scenario</h2><p>The hands-on exercise analyzes a complete five-factor design. Inflation was measured five times at every combination, so its effects can be tested against pure error.</p></div>
@@ -843,7 +768,7 @@ footer a{color:#9fd8e0}
   <div class="takeaway"><strong>Result:</strong> moving from low to high generally raises inflation. Trade embargo is the dominant average change. Diplomatic sanctions and anti-satellite operations also raise it, and the AB and AC interactions show that the embargo effect depends on the other actions. Sabotage is smaller on average, but it remains relevant because it changes the embargo slope.</div>
 </section>
 
-<section id="why-f">
+<section id="why-f" class="later-section">
   <div class="section-head">
     <div class="chapter">16</div>
     <div><h2>Why the F Distribution</h2><p>The ANOVA table compares two variance estimates. The distribution changes with the column: from the observations, to the sums of squares, to the mean squares, and then to their ratio.</p></div>
